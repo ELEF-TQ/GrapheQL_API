@@ -1,6 +1,5 @@
 import express from 'express';
 import { graphqlHTTP } from 'express-graphql';
-import { GraphQLSchema, GraphQLObjectType, GraphQLString } from 'graphql';
 import Schema  from './schema';
 
 const app = express();
@@ -11,15 +10,8 @@ app.listen(port, () => {
 });
 
 
-//_____GrapheQL :
-const schema = new GraphQLSchema({
-  query: new GraphQLObjectType({
-    name: 'Query',
-    fields: {},
-  }),
-});
-
+//_____GrapheQL 
 app.use('/graphql', graphqlHTTP({
-  schema: schema,
+  schema: Schema,
   graphiql: true, 
 }));

@@ -1,42 +1,89 @@
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList } from 'graphql';
-import { graphqlHTTP } from 'express-graphql';
-var _ = require('lodash');
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLID, GraphQLInt, GraphQLList } from 'graphql';
+import _ from 'lodash';
 
+const authorsData = [
+  { id: '1', name: 'Harper Lee', age: 26 },
+  { id: '2', name: 'George Orwell', age: 45 },
+  { id: '3', name: 'Jane Austen', age: 31 },
+];
 
-const BookType = new GraphQLObjectType({
-  name: 'Book',
+const booksData = [
+  { id: '1', name: 'To Kill a Mockingbird', genre: 'Fiction', authorId: '1' },
+  { id: '2', name: '1984', genre: 'Dystopian', authorId: '2' },
+  { id: '3', name: 'Pride and Prejudice', genre: 'Classic', authorId: '1' },
+  { id: '4', name: 'The Great Gatsby', genre: 'Classic', authorId: '3' },
+  { id: '5', name: 'The Catcher in the Rye', genre: 'Fiction', authorId: '3' },
+  { id: '6', name: 'Lord of the Rings', genre: 'Fantasy', authorId: '2' },
+];
+
+const AuthorType: GraphQLObjectType = new GraphQLObjectType({
+  name: 'Author',
   fields: () => ({
-    id: { type: GraphQLString },
+    id: { type: GraphQLID },
     name: { type: GraphQLString },
-    genre: { type: GraphQLString },
+    age: { type: GraphQLInt },
+    books: {
+      type: new GraphQLList(BookType),
+      resolve(parent, args) {
+        return _.filter(booksData, { authorId: parent.id });
+      },
+    },
   }),
 });
 
-
-const booksData = [
-  { id: '1', name: 'Book 1', genre: 'Genre 1' },
-  { id: '2', name: 'Book 2', genre: 'Genre 2' },
-  { id: '3', name: 'Book 3', genre: 'Genre 3' },
-];
+const BookType: GraphQLObjectType = new GraphQLObjectType({
+  name: 'Book',
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    genre: { type: GraphQLString },
+    author: {
+      type: AuthorType,
+      resolve(parent, args) {
+        return _.find(authorsData, { id: parent.authorId });
+      },
+    },
+  }),
+});
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
-    books: {
-      type: new GraphQLList(BookType),
-      resolve() {
-        return booksData; 
-      },
-    },
+
+    //____Book :
     book: {
       type: BookType,
-      args: {
-        id: { type: GraphQLString },
-      },
+      args: { id: { type: GraphQLID } },
       resolve(parent, args) {
-       return _find(booksData, { id : args.id});
+        return _.find(booksData, { id: args.id });
       },
     },
+   
+    //____Author :
+    author: {
+      type: AuthorType,
+      args: { id: { type: GraphQLID } },
+      resolve(parent, args) {
+        return _.find(authorsData, { id: args.id });
+      },
+    },
+   
+    //____Books :
+    books: {
+      type: new GraphQLList(BookType),
+      resolve(parent, args) {
+        return booksData;
+      },
+    },
+    
+    //____Authors :
+    authors: {
+      type: new GraphQLList(AuthorType),
+      resolve(parent, args) {
+        return authorsData;
+      },
+    },
+
   },
 });
 
@@ -46,7 +93,3 @@ const schema = new GraphQLSchema({
 });
 
 export default schema;
-function _find(booksData: { id: string; name: string; genre: string; }[], arg1: { id: any; }): unknown {
-  throw new Error('Function not implemented.');
-}
-
