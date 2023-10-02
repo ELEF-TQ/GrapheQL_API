@@ -1,16 +1,7 @@
-import { gql, useQuery } from "@apollo/client";
-import React from "react";
+import { useQuery } from "@apollo/client";
+import { getBooksQuery } from "../queries";
 
-const getBooksQuery = gql`
-  {
-    books {
-      name
-      id
-    }
-  }
-`;
-
-const Book: React.FC = () => {
+const Book = () => {
   const { loading, error, data } = useQuery(getBooksQuery);
 
   if (loading) return <p>Loading...</p>;
@@ -18,7 +9,7 @@ const Book: React.FC = () => {
 
   return (
     <ul id="Book__List">
-      {data.books.map((book: { id: number; name: string }) => (
+      {data.books.map((book: { id: string; name: string }) => (
         <li key={book.id}>{book.name}</li>
       ))}
     </ul>
